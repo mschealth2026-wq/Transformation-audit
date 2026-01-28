@@ -35,7 +35,7 @@
                 </div>
             </div>
             
-            <button onclick="startAudit()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg transition-all shadow-lg shadow-indigo-200">Launch Assessment</button>
+            <button onclick="startAudit()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg transition-all shadow-lg shadow-indigo-200 cursor-pointer">Launch Assessment</button>
         </div>
 
         <div id="question-screen" class="hidden">
@@ -46,11 +46,8 @@
             <div class="w-full bg-slate-100 rounded-full h-2 mb-10">
                 <div id="progress" class="bg-indigo-600 h-2 rounded-full transition-all" style="width: 0%;"></div>
             </div>
-            
             <h2 id="question-text" class="text-2xl font-bold mb-8 leading-tight text-slate-800">Question text?</h2>
-            
-            <div class="grid grid-cols-1 gap-3" id="options">
-                </div>
+            <div class="grid grid-cols-1 gap-3" id="options"></div>
         </div>
 
         <div id="result-screen" class="hidden">
@@ -69,7 +66,6 @@
                     <h4 class="text-indigo-900 font-black uppercase text-xs mb-1">Coach's Primary Verdict</h4>
                     <p id="verdict-text" class="text-indigo-800 font-medium leading-relaxed"></p>
                 </div>
-                
                 <div id="agile-ish-warning" class="agile-ish-card p-6 rounded-2xl hidden">
                     <h4 class="text-red-900 font-black uppercase text-xs mb-1">"Agile-ish" Red Flag Detected</h4>
                     <p id="red-flag-text" class="text-red-800 text-sm italic"></p>
@@ -78,29 +74,22 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button onclick="location.reload()" class="py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Retake Audit</button>
-                <button class="py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">Download Coaching Roadmap</button>
+                <button onclick="alert('In a pro version, this would trigger your coaching roadmap PDF!')" class="py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">Get Coaching Roadmap</button>
             </div>
         </div>
     </div>
 
     <script>
         const questions = [
-            // VALUE DELIVERY
             {q: "How much does the team focus on 'Solving User Problems' vs 'Meeting Deadlines'?", c: "Value", redFlag: "The plan is fixed; changes are seen as disruptions."},
             {q: "How often do you receive feedback from actual end-users?", c: "Value", redFlag: "Measuring story points or hours rather than value."},
             {q: "Can the Product Owner comfortably say 'No' to stakeholder requests?", c: "Value", redFlag: "Status reporting to managers instead of alignment."},
-
-            // AUTONOMY & CULTURE
             {q: "Do team members feel safe admitting mistakes in Retrospectives?", c: "Autonomy", redFlag: "I did my part, the bug is in QA."},
             {q: "Can the team make process decisions without external approval?", c: "Autonomy", redFlag: "Meetings are status reports for leadership."},
             {q: "Does the team have all the skills (Dev, QA, UX) to go from Idea to Live?", c: "Autonomy", redFlag: "The team is dependent on external silos."},
-
-            // TECHNICAL EXCELLENCE
             {q: "Is testing integrated into the process rather than a 'QA phase' at the end?", c: "Quality", redFlag: "Testing is manual and happens after 'Done'."},
             {q: "Could you deploy the current 'Done' increment to production today?", c: "Quality", redFlag: "Code is messy and requires 'Stabilization' phases."},
             {q: "Is enough time dedicated to reducing technical debt each sprint?", c: "Quality", redFlag: "Focus is 100% on new features, never on health."},
-
-            // CONTINUOUS IMPROVEMENT
             {q: "Are Retrospective action items actually completed?", c: "Improvement", redFlag: "Retros are just 'complaint sessions' with no change."},
             {q: "Can every team member identify the current biggest bottleneck?", c: "Improvement", redFlag: "The team follows processes mechanically."},
             {q: "Does the team try at least one new experiment every month?", c: "Improvement", redFlag: "Repetition of the same mistakes without evolution."}
@@ -125,11 +114,11 @@
             
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
-            const labels = ["Strongly Disagree / Agile-ish", "Disagree", "Neutral", "Agree", "Strongly Agree / Agile Goal"];
+            const labels = ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
             
             labels.forEach((text, i) => {
                 const btn = document.createElement('button');
-                btn.className = "p-4 border-2 border-slate-100 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all text-left text-slate-700 font-medium";
+                btn.className = "p-4 border-2 border-slate-100 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all text-left text-slate-700 font-medium cursor-pointer";
                 btn.innerText = text;
                 btn.onclick = () => handleAnswer(i + 1, q.redFlag);
                 optionsDiv.appendChild(btn);
@@ -150,4 +139,37 @@
 
             const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
             const totalPercent = Math.round((totalScore / 60) * 100);
-            document.getElementById('total-health').innerText =
+            document.getElementById('total-health').innerText = `${totalPercent}%`;
+
+            const minScore = Object.keys(scores).reduce((a, b) => scores[a] < scores[b] ? a : b);
+            const verdicts = {
+                Value: "COACHING STANCE: Mentoring. Focus on Value-Based Prioritization.",
+                Autonomy: "COACHING STANCE: Professional Coaching. Focus on Psychological Safety.",
+                Quality: "COACHING STANCE: Technical Coaching. Focus on Built-in Quality.",
+                Improvement: "COACHING STANCE: Facilitation. Focus on impactful retrospectives."
+            };
+            document.getElementById('verdict-text').innerText = verdicts[minScore];
+
+            if (userRedFlags.length > 0) {
+                document.getElementById('agile-ish-warning').classList.remove('hidden');
+                document.getElementById('red-flag-text').innerText = `Warning: ${userRedFlags[0]}`;
+            }
+
+            new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Value', 'Autonomy', 'Quality', 'Improvement'],
+                    datasets: [{
+                        label: 'Maturity',
+                        data: [scores.Value, scores.Autonomy, scores.Quality, scores.Improvement],
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: '#4f46e5',
+                        borderWidth: 2
+                    }]
+                },
+                options: { scales: { r: { beginAtZero: true, max: 15, ticks: { display: false } } } }
+            });
+        }
+    </script>
+</body>
+</html>
